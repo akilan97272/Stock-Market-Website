@@ -1,0 +1,104 @@
+<!-- Revamped interactiveCharts.html (India-Specific with Live Data) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Market Trends</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>Stock Market Academy India</h1>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="basics.html">Stock Market Basics</a></li>
+            <li><a href="strategies.html">Investment Strategies</a></li>
+            <li><a href="interactiveCharts.html">Stock Trends</a></li>
+        </ul>
+    </nav>
+
+    <header class="hero">
+        <h2>Live Stock Market Trends</h2>
+        <p>Analyze real-time stock trends and market performance.</p>
+    </header>
+
+    <section class="stock-selector">
+        <h2>Select a Stock</h2>
+        <label for="stock">Choose a stock:</label>
+        <select id="stock" onchange="fetchStockData()">
+            <option value="RELIANCE.BSE">Reliance</option>
+            <option value="TCS.BSE">TCS</option>
+            <option value="INFY.BSE">Infosys</option>
+            <option value="HDFCBANK.BSE">HDFC Bank</option>
+            <option value="ITC.BSE">ITC</option>
+        </select>
+    </section>
+
+    <section class="chart-container">
+        <canvas id="stockChart"></canvas>
+    </section>
+
+    <script>
+        const apiKey = "cv9gq61r01qkfpsjpmlgcv9gq61r01qkfpsjpmm0"; // Replace with your actual API key
+        const stockChartCanvas = document.getElementById('stockChart').getContext('2d');
+        let stockChart;
+
+        function fetchStockData() {
+            const stockSymbol = document.getElementById('stock').value;
+            const apiUrl = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${stockSymbol}&interval=5min&apikey=${apiKey}`;
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data["Time Series (5min)"]) {
+                        const timeSeries = data["Time Series (5min)"];
+                        const labels = Object.keys(timeSeries).reverse().slice(0, 10);
+                        const prices = labels.map(label => parseFloat(timeSeries[label]["1. open"]));
+
+                        updateChart(labels, prices);
+                    } else {
+                        alert("Error fetching data. Please check your API key or try again later.");
+                    }
+                })
+                .catch(error => console.error("Error fetching stock data:", error));
+        }
+
+        function updateChart(labels, data) {
+            if (stockChart) {
+                stockChart.destroy();
+            }
+            stockChart = new Chart(stockChartCanvas, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Stock Price (₹)',
+                        data: data,
+                        borderColor: 'blue',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: true },
+                        tooltip: { enabled: true }
+                    },
+                    scales: {
+                        y: { beginAtZero: false }
+                    }
+                }
+            });
+        }
+    </script>
+
+    <footer>
+        <p>&copy; 2025 Stock Market Academy India. All rights reserved.</p>
+    </footer>
+</body>
+</html>
